@@ -26,7 +26,7 @@ jobs:
             echo "<li><a href=\"test-results-details/$i.html\">Test $i</a></li>" >> $SHORT_SHA-$DATE/test-results/test-results-summary.html
           done
           echo "</ul>" >> $SHORT_SHA-$DATE/test-results/test-results-summary.html
-          echo "<a href=\"$SHORT_SHA-$DATE/test-results/test-results-summary.html\">Test Results Summary</a><br>" >> index.html
+          echo "<p><a href=\"$SHORT_SHA-$DATE/test-results/test-results-summary.html\">$SHORT_SHA-$DATE</a><br>" >> index.html
 
       - name: Commit and push
         run: |
