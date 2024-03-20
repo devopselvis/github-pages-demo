@@ -1,0 +1,60 @@
+name: Create Test Results
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Create directories and files
+      run: |
+        SHORT_SHA=$(echo ${{ github.sha }} | cut -c 1-7)
+        DATE=$(date +%Y-%m-%d)
+        
+        # Get the first few digits of the commit SHA and today's date
+        echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+        echo "DATE=$DATE" >> $GITHUB_ENV
+        # Create the directories
+        mkdir -p $SHORT_SHA-$DATE/test-results/test-results-details
+        # Create the test-results-summary.html file
+        echo "<ul>" > $SHORT_SHA-$DATE/test-results/test-results-summary.html
+        # Create the 1.html, 2.html, and 3.html files
+        for i in {1..3}; do
+          echo "$i $(date)" > $SHORT_SHA-$DATE/test-results/test-results-details/$i.html
+          echo "<li><a href=\"test-results-details/$i.html\">Test $i</a></li>" >> $SHORT_SHA-$DATE/test-results/test-results-summary.html
+        done
+        echo "</ul>" >> $SHORT_SHA-$DATE/test-results/test-results-summary.html
+    
+    - name: Checkout test-results repository
+      uses: actions/checkout@v4
+      with:
+        repository: devopselvis/github-pages-demo-test-results
+        token: ${{ secrets.PAT }}
+        path: 'test-results-repo'
+    - run: ls -la ${{github.workspace}}
+
+    - name: Copy files to test-results repository
+      run: |
+        cp -r $SHORT_SHA-$DATE test-results-repo/
+    
+    - name: Commit and push
+      run: |
+        cd test-results-repo
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git remote add origin2 https://${{ secrets.PAT }}@github.com/devopselvis/github-pages-demo-test-results.git
+        git add .
+        git commit -m "Add test results"
+        git push origin2 main
+        
+    #- name: Deploy to GitHub Pages
+    #  uses: peaceiris/actions-gh-pages@v3
+    #  with:
+    #    github_token: ${{ secrets.PAT }}
+    #    publish_branch: main
+    #    publish_dir: ./test-results-repo
